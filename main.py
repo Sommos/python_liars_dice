@@ -47,6 +47,13 @@ def get_challenge_input():
         except ValueError:
             print("Invalid input. Please enter 'y' or 'n'.")
 
+def ai_make_bid(current_bid):
+    # randomly generate face_value and quantity for the AI's bid
+    face_value = random.randint(1, 6)
+    quantity = random.randint(current_bid[1] + 1, current_bid[1] + 3)
+
+    return face_value, quantity
+
 def liar_dice_game(num_players, num_dice_per_player, num_rounds):
     # init the game
     players_dice = {player: num_dice_per_player for player in range(1, num_players + 1)}
@@ -63,8 +70,14 @@ def liar_dice_game(num_players, num_dice_per_player, num_rounds):
             print(f"Player {current_player}'s turn")
             print(f"Current bid: {current_bid}")
 
-            # get the player's bid
-            bid = get_valid_bid(current_bid)
+            if current_player == 1:
+                # get the player's bid
+                bid = get_valid_bid(current_bid)
+            else:
+                # get the AI's bid
+                bid = ai_make_bid(current_bid)
+                print(f"AI's bid: {bid[1]} dice of face value {bid[1]}")
+
             current_bid = bid
             current_player = (current_player % num_players) + 1
             

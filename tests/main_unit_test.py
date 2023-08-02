@@ -1,27 +1,30 @@
-import unittest
 from unittest.mock import patch
 from io import StringIO
-from main import roll_dice, valid_bid, challenge, liar_dice_game
+import unittest
+
+from main import get_valid_bid, get_challenge_input, ai_make_bid, liar_dice_game
 
 class TestLiarDiceGame(unittest.TestCase):
-    def test_roll_dice(self):
-        self.assertEqual(len(roll_dice(5)), 5)
-        self.assertTrue(all(1 <= die <= 6 for die in roll_dice(5)))
+    def test_get_valid_bid(self):
+        with patch('builtins.input', side_effect=['3 4', '2 3']):
+            self.assertEqual(get_valid_bid((3, 4)), (2, 3))
 
-    def test_valid_bid(self):
-        self.assertTrue(valid_bid((3, 4), (2, 3)))
-        self.assertFalse(valid_bid((2, 3), (3, 4)))
-        self.assertFalse(valid_bid((3, 3), (3, 2)))
+    def test_get_challenge_input(self):
+        with patch('builtins.input', side_effect=['y']):
+            self.assertTrue(get_challenge_input())
+        with patch('builtins.input', side_effect=['n']):
+            self.assertFalse(get_challenge_input())
 
-    def test_challenge(self):
-        self.assertTrue(challenge((4, 5), {1: 1, 2: 2, 3: 1, 4: 0, 5: 1, 6: 1}))
-        self.assertFalse(challenge((3, 4), {1: 1, 2: 2, 3: 1, 4: 0, 5: 1, 6: 1}))
-        self.assertFalse(challenge((2, 3), {1: 1, 2: 2, 3: 1, 4: 0, 5: 1, 6: 1}))
+    def test_ai_make_bid(self):
+        current_bid = (3, 4)
+        bid = ai_make_bid(current_bid)
+        self.assertTrue(1 <= bid[0] <= 6)
+        self.assertTrue(current_bid[1] + 1 <= bid[1] <= current_bid[1] + 3)
 
-    @patch('builtins.input', side_effect=['3 4', '2 3', '4 5', '1 6', '5 3', '6 2'])
+    @patch('builtins.input', side_effect=['2', '5', '3', 'n', 'n', 'n', 'n', 'n', 'n', 'n', 'n', 'n'])
     @patch('sys.stdout', new_callable=StringIO)
     def test_liar_dice_game(self, mock_stdout, mock_input):
-        liar_dice_game(2, 5, 3)
+        liar_dice_game()
         self.assertIn("Player 1's turn", mock_stdout.getvalue())
         self.assertIn("Player 2's turn", mock_stdout.getvalue())
         self.assertIn("Round 1", mock_stdout.getvalue())
