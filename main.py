@@ -19,6 +19,34 @@ def challenge(prev_bid, players_dice):
 
     return total_dice_count < quantity or players_dice[face_value] < quantity
 
+def get_valid_bid(current_bid):
+    # get the bid from the user and return it
+    while True:
+        try:
+            player_input = input("Enter your bid as 'face_value quantity': ")
+            face_value, quantity = map(int, player_input.split())
+            bid = (face_value, quantity)
+            # check if the bid is valid
+            if valid_bid(bid, current_bid):
+                return bid
+            else:
+                print("Invalid bid. Try again.")
+        except ValueError:
+            print("Invalid input. Please enter the bid as 2 integers separated by a space.")
+
+def get_challenge_input():
+    # get the challenge input from the user and return True or False
+    while True:
+        try:
+            challenge_input = input("Challenge? (y/n): ")
+            # check if the input is valid
+            if challenge_input.lower() in ['y', 'n']:
+                return challenge_input.lower() == 'y'
+            else:
+                print("Invalid input. Please enter 'y' or 'n'.")
+        except ValueError:
+            print("Invalid input. Please enter 'y' or 'n'.")
+
 def liar_dice_game(num_players, num_dice_per_player, num_rounds):
     # init the game
     players_dice = {player: num_dice_per_player for player in range(1, num_players + 1)}
@@ -36,23 +64,13 @@ def liar_dice_game(num_players, num_dice_per_player, num_rounds):
             print(f"Current bid: {current_bid}")
 
             # get the player's bid
-            player_input = input("Enter your bid as 'face_value quantity': ")
-            face_value, quantity = map(int, player_input.split())
-
-            bid = (face_value, quantity)
-            
-            if valid_bid(bid, current_bid):
-                # update the current bid
-                current_bid = bid
-                # update the current player
-                current_player = (current_player % num_players) + 1
-            else:
-                print("Invalid bid. Try again.")
-                continue
+            bid = get_valid_bid(current_bid)
+            current_bid = bid
+            current_player = (current_player % num_players) + 1
             
             # check for a challenge, and end the round if a challenge is made
-            challenge_input = input("Challenge? (y/n): ")
-            if challenge_input.lower() == 'y':
+            challenge_input = get_challenge_input()
+            if challenge_input:
                 if challenge(current_bid, players_dice):
                     # the challenge was successful
                     print(f"Player {current_player} was lying! They lose a die.")
