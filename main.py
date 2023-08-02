@@ -1,3 +1,4 @@
+from collections import Counter
 import random
 
 def roll_dice(num_dice):
@@ -17,7 +18,15 @@ def challenge(prev_bid, players_dice):
     face_value, quantity = prev_bid
     total_dice_count = sum(players_dice.values())
 
-    return total_dice_count < quantity or players_dice[face_value] < quantity
+    if total_dice_count < quantity:
+        return True
+    
+    dice_counts = Counter(players_dice.values())
+    for count in range(quantity, total_dice_count + 1):
+        if dice_counts[count] >= quantity:
+            return False
+    
+    return True
 
 def get_valid_bid(current_bid):
     # get the bid from the user and return it
@@ -47,12 +56,36 @@ def get_challenge_input():
         except ValueError:
             print("Invalid input. Please enter 'y' or 'n'.")
 
-def ai_make_bid(current_bid):
-    # randomly generate face_value and quantity for the AI's bid
-    face_value = random.randint(1, 6)
-    quantity = random.randint(current_bid[1] + 1, current_bid[1] + 3)
+def ai_make_bid(current_bid, players_dice):
+    # make a bid based on the current bid and the player's dice
+    face_value, quantity = current_bid
+    total_dice_count = sum(players_dice.values())
+    
+    # calculate the probability of rolling a higher face value
+    higher_face_value_count = sum(count for value, count in players_dice.items() if value > face_value)
+    higher_face_value_probability = higher_face_value_count / total_dice_count
 
-    return face_value, quantity
+    # calculate the probability of rolling a higher quantity
+    higher_quantity_probability = sum(players_dice.values()) / (6 * len(players_dice))
+
+    # calculate the expected number of dice that will be rolled
+    expected_dice_count = higher_face_value_probability * total_dice_count
+
+    # calculate the expected number of dice that will be rolled with the current face value
+    expected_current_face_value_count = higher_quantity_probability * total_dice_count
+
+    # make a bid based on the expected number of dice that will be rolled
+    if expected_dice_count >= quantity + 1:
+        bid_quantity = quantity + 1
+        bid_face_value = face_value
+    elif expected_current_face_value_count >= quantity:
+        bid_quantity = quantity + 1
+        bid_face_value = face_value
+    else:
+        bid_quantity = quantity
+        bid_face_value = face_value + 1
+
+    return bid_face_value, bid_quantity
 
 def liar_dice_game(num_players, num_dice_per_player, num_rounds):
     # init the game
